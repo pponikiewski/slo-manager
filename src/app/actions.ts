@@ -29,7 +29,7 @@ export async function addMember(formData: FormData) {
 export async function saveAttendance(
   memberId: string,
   date: string,
-  timeSlot: string, 
+  timeSlot: string,
   type: string | null
 ) {
   // 1. Najpierw usuwamy stary wpis dla tego slotu i dnia (czyszczenie kratki)
@@ -37,10 +37,10 @@ export async function saveAttendance(
   const { error: deleteError } = await supabase
     .from("attendance_logs")
     .delete()
-    .match({ 
-        member_id: memberId, 
-        date: date, 
-        time_slot: timeSlot // Usuwamy tylko z tego konkretnego slotu (np. 'standard')
+    .match({
+      member_id: memberId,
+      date: date,
+      time_slot: timeSlot // Usuwamy tylko z tego konkretnego slotu (np. 'standard')
     });
 
   if (deleteError) throw new Error(deleteError.message);
@@ -49,13 +49,13 @@ export async function saveAttendance(
   if (type) {
     const { error: insertError } = await supabase
       .from("attendance_logs")
-      .insert({ 
-        member_id: memberId, 
-        date: date, 
-        type: type, 
-        time_slot: timeSlot 
+      .insert({
+        member_id: memberId,
+        date: date,
+        type: type,
+        time_slot: timeSlot
       });
-      
+
     if (insertError) throw new Error(insertError.message);
   }
 
@@ -72,7 +72,7 @@ export async function addExtraScore(memberId: string, type: string, selectedMont
 
   const { error } = await supabase.from("attendance_logs").insert({
     member_id: memberId,
-    date: dateStr,     
+    date: dateStr,
     type: type,
     time_slot: 'extra'
   });
@@ -80,7 +80,7 @@ export async function addExtraScore(memberId: string, type: string, selectedMont
   if (error) throw new Error(error.message);
 
   // Odświeżamy stronę
-  revalidatePath(`/grafiki/extra`); 
+  revalidatePath(`/grafiki/extra`);
   revalidatePath("/");
 }
 
@@ -98,4 +98,38 @@ export async function deleteExtraScore(logId: string) {
   // Odświeżamy widoki, żeby punkt zniknął natychmiast
   revalidatePath("/grafiki/extra");
   revalidatePath("/");
+}
+
+// --- NOWE FUNKCJE DO EDYCJI GRAFIKU ---
+
+export async function assignMemberToSlot(slotId: string, memberId: string) {
+  const { error } = await supabase
+    .from("roster_assignments")
+    .insert({
+      weekly_slot_id: slotId,
+      member_id: memberId
+    });
+
+  if (error) {
+    console.error("Błąd przypisywania:", error);
+    throw new Error("Nie udało się przypisać osoby");
+  }
+
+  revalidatePath("/grafiki/edycja");
+  revalidatePath("/grafiki/tygodniowy");
+}
+
+export async function removeAssignment(assignmentId: string) {
+  const { error } = await supabase
+    .from("roster_assignments")
+    .delete()
+    .eq("id", assignmentId);
+
+  if (error) {
+    console.error("Błąd usuwania przypisania:", error);
+    throw new Error("Nie udało się usunąć przypisania");
+  }
+
+  revalidatePath("/grafiki/edycja");
+  revalidatePath("/grafiki/tygodniowy");
 }

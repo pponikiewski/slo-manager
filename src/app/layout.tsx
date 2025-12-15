@@ -6,7 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LayoutDashboard, CalendarDays, Users, Star } from "lucide-react";
+import { Menu, LayoutDashboard, CalendarDays, Users, Star, Settings } from "lucide-react";
 import { ModeToggle } from "@/components/ModeToggle";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -38,6 +38,11 @@ const routes = [
     label: "Służba Dodatkowa",
     icon: Star,
   },
+  {
+    href: "/grafiki/edycja",
+    label: "Edytor Grafiku",
+    icon: Settings,
+  },
 ];
 
 export default function RootLayout({
@@ -55,7 +60,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="flex min-h-screen flex-col md:flex-row">
-            
+
             {/* --- SIDEBAR DLA DESKTOPU --- */}
             <aside className="hidden w-64 flex-col border-r bg-muted/40 md:flex">
               <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
@@ -77,16 +82,16 @@ export default function RootLayout({
                 ))}
               </nav>
               <div className="mt-auto p-4 border-t">
-                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Tryb:</span>
-                    <ModeToggle />
-                 </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Tryb:</span>
+                  <ModeToggle />
+                </div>
               </div>
             </aside>
 
             {/* --- GŁÓWNA ZAWARTOŚĆ --- */}
             <div className="flex flex-col flex-1">
-              
+
               {/* --- HEADER MOBILNY (Tylko na małych ekranach) --- */}
               <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 md:hidden justify-between">
                 <Sheet>
@@ -115,14 +120,14 @@ export default function RootLayout({
                       ))}
                     </nav>
                     <div className="mt-auto pt-4 border-t">
-                        <div className="flex justify-between items-center">
-                            <span>Motyw</span>
-                            <ModeToggle />
-                        </div>
+                      <div className="flex justify-between items-center">
+                        <span>Motyw</span>
+                        <ModeToggle />
+                      </div>
                     </div>
                   </SheetContent>
                 </Sheet>
-                
+
                 {/* Tytuł na mobilce */}
                 <span className="font-semibold">SLO Manager</span>
                 <div className="w-8"></div> {/* Placeholder dla równowagi */}
