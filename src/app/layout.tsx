@@ -62,7 +62,7 @@ export default function RootLayout({
           <div className="flex min-h-screen flex-col md:flex-row">
 
             {/* --- SIDEBAR DLA DESKTOPU --- */}
-            <aside className="hidden w-64 flex-col border-r bg-muted/40 md:flex">
+            <aside className="hidden w-64 flex-col border-r bg-muted/40 md:flex sticky top-0 h-screen">
               <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
                 <Link href="/" className="flex items-center gap-2 font-semibold">
                   <Users className="h-6 w-6" />
