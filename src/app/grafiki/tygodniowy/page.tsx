@@ -25,11 +25,14 @@ export default async function TygodniowyPage() {
   // 2. Pobieramy logi obecności z tego miesiąca
   const { data: logs } = await supabase
     .from("attendance_logs")
-    .select("*");
+    .select("*")
+    .neq("time_slot", "extra"); // <--- TO MUSI TU BYĆ
 
   return (
-    <div className="container mx-auto py-6 max-w-4xl">
-      <h1 className="text-2xl font-bold mb-6">Grafik Tygodniowy (Stały)</h1>
+    <div className="container mx-auto py-6 max-w-5xl">
+      <h1 className="text-3xl font-extrabold mb-6 tracking-tight bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+        Grafik Tygodniowy (Stały)
+      </h1>
       {/* Przekazujemy dane do komponentu wyświetlającego */}
       <WeeklyRoster slots={slots as any} logs={logs || []} />
     </div>

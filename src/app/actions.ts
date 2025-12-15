@@ -2,6 +2,7 @@
 
 import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
+import { startOfMonth, format, parseISO } from "date-fns";
 
 export async function addMember(formData: FormData) {
   // 1. Wyciągamy dane z formularza HTML
@@ -28,47 +29,73 @@ export async function addMember(formData: FormData) {
 export async function saveAttendance(
   memberId: string,
   date: string,
-  timeSlot: string, // Teraz to będzie np. 'standard' albo 'am/pm'
+  timeSlot: string, 
   type: string | null
 ) {
-  // Jeśli typ to null, usuwamy wpis
-  if (!type) {
-    await supabase
-      .from("attendance_logs")
-      .delete()
-      .match({ member_id: memberId, date, type: 'O' }); // Usuwamy O
-       // UWAGA: To uproszczenie. W delete lepiej matchować po ID, ale tu matchujemy po logice
-       // Dla pewności spróbujmy usunąć wpis dla danej osoby i daty, który nie jest "Extra"
-       // W tej wersji zróbmy prościej:
-  } 
+  // 1. Najpierw usuwamy stary wpis dla tego slotu i dnia (czyszczenie kratki)
+  // Dzięki temu w grafiku tygodniowym nie będziemy mieć duplikatów
+  const { error: deleteError } = await supabase
+    .from("attendance_logs")
+    .delete()
+    .match({ 
+        member_id: memberId, 
+        date: date, 
+        time_slot: timeSlot // Usuwamy tylko z tego konkretnego slotu (np. 'standard')
+    });
 
-  // W wersji StrictCell po prostu używamy upsert.
-  // Jeśli type jest null, to znaczy że chcemy usunąć. 
-  // Supabase upsert nie usuwa przy nullu. Musimy rozdzielić logikę.
-  
+  if (deleteError) throw new Error(deleteError.message);
+
+  // 2. Jeśli typ nie jest nullem (czyli zaznaczamy O lub N), dodajemy nowy wpis
   if (type) {
-      const { error } = await supabase
+    const { error: insertError } = await supabase
       .from("attendance_logs")
-      .upsert(
-        { member_id: memberId, date, type, time_slot: timeSlot },
-        { onConflict: 'member_id, date, type' } 
-        // Uwaga: Constraint w bazie jest (member_id, date, type).
-        // To oznacza, że możesz mieć tego samego dnia 'O' i 'W'. To dobrze!
-      );
-      if (error) throw new Error(error.message);
-  } else {
-      // Usuwanie (dla StrictCell: usuwamy wpis O lub N dla tej daty)
-      // Ponieważ StrictCell przełącza O/N, musimy usunąć cokolwiek tam jest z tego zakresu.
-      const { error } = await supabase
-        .from("attendance_logs")
-        .delete()
-        .eq('member_id', memberId)
-        .eq('date', date)
-        .in('type', ['O', 'N']); // Usuwamy tylko obowiązkowe, zostawiamy Extra
+      .insert({ 
+        member_id: memberId, 
+        date: date, 
+        type: type, 
+        time_slot: timeSlot 
+      });
       
-      if (error) throw new Error(error.message);
+    if (insertError) throw new Error(insertError.message);
   }
 
   revalidatePath("/grafiki/tygodniowy");
+  revalidatePath("/grafiki/niedzielny");
+  revalidatePath("/");
+}
+
+export async function addExtraScore(memberId: string, type: string, selectedMonth: string) {
+  // POPRAWKA: Tworzymy datę "na sztywno" jako tekst.
+  // Jeśli selectedMonth to "2025-12", wynik to "2025-12-01".
+  // Żadnych stref czasowych, żadnego przesuwania dni.
+  const dateStr = `${selectedMonth}-01`;
+
+  const { error } = await supabase.from("attendance_logs").insert({
+    member_id: memberId,
+    date: dateStr,     
+    type: type,
+    time_slot: 'extra'
+  });
+
+  if (error) throw new Error(error.message);
+
+  // Odświeżamy stronę
+  revalidatePath(`/grafiki/extra`); 
+  revalidatePath("/");
+}
+
+export async function deleteExtraScore(logId: string) {
+  const { error } = await supabase
+    .from("attendance_logs")
+    .delete()
+    .eq("id", logId);
+
+  if (error) {
+    console.error("Błąd usuwania:", error);
+    throw new Error("Nie udało się usunąć wpisu");
+  }
+
+  // Odświeżamy widoki, żeby punkt zniknął natychmiast
+  revalidatePath("/grafiki/extra");
   revalidatePath("/");
 }

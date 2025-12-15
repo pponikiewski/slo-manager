@@ -41,22 +41,22 @@ export function StrictAttendanceCell({ memberId, date, initialStatus }: Props) {
 
   const getStyles = (s: string | null) => {
     switch (s) {
-      // Styl dla OBECNY (O) - Zielony + Pogrubienie
-      case "O": return "bg-green-100 text-green-700 border-green-300 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800 font-extrabold text-base";
-      
-      // Styl dla NIEOBECNY (N) - Czerwony + Pogrubienie
-      case "N": return "bg-red-100 text-red-700 border-red-300 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800 font-extrabold text-base";
-      
+      // Styl dla OBECNY (O) - Subtelny zielony, profesjonalny
+      case "O": return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800/50 font-medium text-sm";
+
+      // Styl dla NIEOBECNY (N) - Subtelny czerwony/szary, profesjonalny
+      case "N": return "bg-red-50 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800/50 font-medium text-sm";
+
       // Puste pole
-      default: return "hover:bg-accent/50";
+      default: return "hover:bg-accent/50 opacity-50 hover:opacity-100";
     }
   };
 
   return (
-    <div 
+    <div
       onClick={handleClick}
       className={cn(
-        "w-full h-10 flex items-center justify-center cursor-pointer select-none transition-all m-0.5 border rounded-sm",
+        "w-full h-9 flex items-center justify-center cursor-pointer select-none transition-all m-[1px] border rounded-md",
         getStyles(status)
       )}
     >

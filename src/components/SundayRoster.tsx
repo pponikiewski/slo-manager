@@ -3,8 +3,6 @@
 import { StrictAttendanceCell } from "./StrictAttendanceCell";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSunday } from "date-fns";
 import { pl } from "date-fns/locale";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 type Member = { id: string; last_name: string; first_name: string; guild: string | null; rank: string };
 type Log = { member_id: string; date: string; type: string };
@@ -16,7 +14,7 @@ interface Props {
 
 export function SundayRoster({ members, logs }: Props) {
   const today = new Date();
-  
+
   // 1. Generujemy TYLKO NIEDZIELE w tym miesiącu
   const sundays = eachDayOfInterval({
     start: startOfMonth(today),
@@ -29,6 +27,11 @@ export function SundayRoster({ members, logs }: Props) {
     const guildName = member.guild || "Bez Gildii"; // Jak ktoś nie ma gildii, trafia do worka "Bez Gildii"
     if (!acc[guildName]) acc[guildName] = [];
     acc[guildName].push(member);
+    // Sortujemy alfabetycznie wewnątrz grupy
+    acc[guildName].sort((a, b) => {
+      // W SundayRoster typ Member to { id, last_name, first_name ... } a nie { member: ... } jak w Weekly.
+      return a.last_name.localeCompare(b.last_name) || a.first_name.localeCompare(b.first_name);
+    });
     return acc;
   }, {} as Record<string, Member[]>);
 
@@ -44,63 +47,66 @@ export function SundayRoster({ members, logs }: Props) {
   return (
     <div className="space-y-8">
       {sortedGuildNames.map((guildName) => (
-        <Card key={guildName} className="break-inside-avoid shadow-md">
-          <CardHeader className="pb-3 bg-muted/20 border-b">
-            <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-bold text-primary tracking-tight">
-                    {guildName}
-                </CardTitle>
-                <Badge variant="outline">{groupedMembers[guildName].length} osób</Badge>
+        <div key={guildName} className="break-inside-avoid shadow-sm rounded-lg border bg-card/60 backdrop-blur-sm overflow-hidden mb-4">
+          <div className="flex items-center justify-between bg-muted/30 px-3 py-2 border-b">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent transform uppercase tracking-tight">
+                {guildName}
+              </h3>
+              <span className="text-[10px] text-muted-foreground bg-background/50 px-1 py-0.5 rounded-[2px] border font-semibold">
+                {groupedMembers[guildName].length} osób
+              </span>
             </div>
-          </CardHeader>
-          <CardContent className="p-0 overflow-x-auto">
-            <table className="w-full text-sm">
+          </div>
+
+          <div className="">
+            <table className="min-w-full text-sm">
               <thead>
-                <tr className="bg-muted/5">
-                  <th className="p-3 text-left min-w-[180px] font-medium text-muted-foreground border-r">
+                <tr className="bg-muted/10 border-b border-border/50">
+                  <th className="p-2 px-3 text-left min-w-[140px] font-medium text-muted-foreground uppercase text-xs tracking-wide border-r border-border/30">
                     Nazwisko i Imię
                   </th>
                   {/* Nagłówki Niedziel */}
                   {sundays.map(date => (
-                    <th key={date.toISOString()} className="p-2 text-center w-14 border-r last:border-0">
-                       <div className="flex flex-col items-center">
-                          <span className="text-[10px] uppercase text-red-500 font-bold">Nd</span>
-                          <span className="text-lg font-bold text-foreground">
-                            {format(date, 'd')}
-                          </span>
-                       </div>
+                    <th key={date.toISOString()} className="p-2 text-center w-10 border-r border-border/30 last:border-0 hover:bg-muted/20 transition-colors">
+                      <div className="flex flex-col items-center">
+                        <span className="text-[10px] uppercase text-red-500/80 font-bold leading-none mb-0.5">Nd</span>
+                        <span className="text-xs font-bold text-foreground leading-none">
+                          {format(date, 'd')}
+                        </span>
+                      </div>
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border/30">
                 {groupedMembers[guildName].map((member) => (
-                  <tr key={member.id} className="border-b last:border-0 hover:bg-muted/10 transition-colors">
-                    <td className="p-3 font-medium border-r whitespace-nowrap">
+                  <tr key={member.id} className="group hover:bg-muted/20 transition-colors">
+                    <td className="p-2 px-3 font-medium border-r border-border/30 whitespace-nowrap text-foreground/90 group-hover:text-foreground">
                       {member.last_name} {member.first_name}
-                      <span className="ml-2 text-xs text-muted-foreground font-normal">
+                      <span className="ml-1 text-[9px] text-muted-foreground/70 font-normal">
                         ({member.rank})
                       </span>
                     </td>
                     {/* Kratki */}
                     {sundays.map(date => {
-                       const dateStr = format(date, 'yyyy-MM-dd');
-                       return (
-                         <td key={dateStr} className="p-0 text-center border-r last:border-0">
-                           <StrictAttendanceCell 
-                              memberId={member.id}
-                              date={dateStr}
-                              initialStatus={getStatus(member.id, dateStr)}
-                           />
-                         </td>
-                       );
+                      const dateStr = format(date, 'yyyy-MM-dd');
+                      return (
+                        <td key={dateStr} className="p-0 text-center border-r border-border/30 last:border-0 bg-background/20">
+                          <StrictAttendanceCell
+                            memberId={member.id}
+                            date={dateStr}
+                            initialStatus={getStatus(member.id, dateStr)}
+                          />
+                        </td>
+                      );
                     })}
                   </tr>
                 ))}
               </tbody>
             </table>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
     </div>
   );
