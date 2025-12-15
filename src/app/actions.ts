@@ -28,27 +28,47 @@ export async function addMember(formData: FormData) {
 export async function saveAttendance(
   memberId: string,
   date: string,
-  slot: 'am' | 'pm',
-  type: string | null // null oznacza usunięcie wpisu
+  timeSlot: string, // Teraz to będzie np. 'standard' albo 'am/pm'
+  type: string | null
 ) {
+  // Jeśli typ to null, usuwamy wpis
   if (!type) {
-    // Jeśli typ to null, usuwamy wpis (czyszczenie kratki)
     await supabase
       .from("attendance_logs")
       .delete()
-      .match({ member_id: memberId, date, slot });
-  } else {
-    // W przeciwnym razie wstawiamy lub aktualizujemy (upsert)
-    const { error } = await supabase
+      .match({ member_id: memberId, date, type: 'O' }); // Usuwamy O
+       // UWAGA: To uproszczenie. W delete lepiej matchować po ID, ale tu matchujemy po logice
+       // Dla pewności spróbujmy usunąć wpis dla danej osoby i daty, który nie jest "Extra"
+       // W tej wersji zróbmy prościej:
+  } 
+
+  // W wersji StrictCell po prostu używamy upsert.
+  // Jeśli type jest null, to znaczy że chcemy usunąć. 
+  // Supabase upsert nie usuwa przy nullu. Musimy rozdzielić logikę.
+  
+  if (type) {
+      const { error } = await supabase
       .from("attendance_logs")
       .upsert(
-        { member_id: memberId, date, slot, type },
-        { onConflict: 'member_id, date, slot' } // Klucz unikalny, który zdefiniowaliśmy w bazie
+        { member_id: memberId, date, type, time_slot: timeSlot },
+        { onConflict: 'member_id, date, type' } 
+        // Uwaga: Constraint w bazie jest (member_id, date, type).
+        // To oznacza, że możesz mieć tego samego dnia 'O' i 'W'. To dobrze!
       );
+      if (error) throw new Error(error.message);
+  } else {
+      // Usuwanie (dla StrictCell: usuwamy wpis O lub N dla tej daty)
+      // Ponieważ StrictCell przełącza O/N, musimy usunąć cokolwiek tam jest z tego zakresu.
+      const { error } = await supabase
+        .from("attendance_logs")
+        .delete()
+        .eq('member_id', memberId)
+        .eq('date', date)
+        .in('type', ['O', 'N']); // Usuwamy tylko obowiązkowe, zostawiamy Extra
       
-    if (error) throw new Error(error.message);
+      if (error) throw new Error(error.message);
   }
 
-  // Odświeżamy widok, żeby inni admini też widzieli zmianę
-  revalidatePath("/grafik");
+  revalidatePath("/grafiki/tygodniowy");
+  revalidatePath("/");
 }
