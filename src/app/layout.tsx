@@ -6,7 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LayoutDashboard, CalendarDays, Users } from "lucide-react";
+import { Menu, LayoutDashboard, CalendarDays, Users, Star } from "lucide-react";
 import { ModeToggle } from "@/components/ModeToggle";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -24,11 +24,20 @@ const routes = [
     icon: LayoutDashboard,
   },
   {
-    href: "/grafik",
-    label: "Grafik & Obecność",
+    href: "/grafiki/tygodniowy",
+    label: "Grafik Tygodniowy",
     icon: CalendarDays,
   },
-  // Tu w przyszłości dodasz np. /settings
+  {
+    href: "/grafiki/niedzielny",
+    label: "Grafik Niedzielny",
+    icon: Users,
+  },
+  {
+    href: "/grafiki/extra",
+    label: "Służba Dodatkowa",
+    icon: Star,
+  },
 ];
 
 export default function RootLayout({
