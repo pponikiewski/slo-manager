@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AddMemberDialog } from "@/components/AddMemberDialog"; // <--- Dodaj import
 
 export const revalidate = 0; // Wyłącza cache, żeby zawsze widzieć świeże dane
 
@@ -29,6 +30,7 @@ export default async function Home() {
       <Card>
         <CardHeader>
           <CardTitle>Lista Ministrantów</CardTitle>
+                    <AddMemberDialog /> {/* <--- Tutaj wstawiamy przycisk */}
         </CardHeader>
         <CardContent>
           <Table>
@@ -56,7 +58,7 @@ export default async function Home() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </Table>          <AddMemberDialog /> {/* <--- Tutaj wstawiamy przycisk */}
         </CardContent>
       </Card>
     </main>
