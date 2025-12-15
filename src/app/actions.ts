@@ -133,3 +133,36 @@ export async function removeAssignment(assignmentId: string) {
   revalidatePath("/grafiki/edycja");
   revalidatePath("/grafiki/tygodniowy");
 }
+
+// --- ZARZĄDZANIE OSOBAMI ---
+
+export async function deleteMember(memberId: string) {
+  const { error } = await supabase
+    .from("members")
+    .delete()
+    .eq("id", memberId);
+
+  if (error) {
+    console.error("Błąd usuwania osoby:", error);
+    throw new Error("Nie udało się usunąć osoby");
+  }
+
+  revalidatePath("/osoby");
+  revalidatePath("/"); // Ranking might change
+}
+
+export async function updateMember(memberId: string, data: { first_name: string; last_name: string; rank: string }) {
+  const { error } = await supabase
+    .from("members")
+    .update(data)
+    .eq("id", memberId);
+
+  if (error) {
+    console.error("Błąd edycji osoby:", error);
+    throw new Error("Nie udało się zaktualizować danych");
+  }
+
+  revalidatePath("/osoby");
+  revalidatePath("/");
+  revalidatePath("/grafiki/tygodniowy");
+}

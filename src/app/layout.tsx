@@ -6,7 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LayoutDashboard, CalendarDays, Users, Star, Settings } from "lucide-react";
+import { Menu, LayoutDashboard, CalendarDays, Users, Star, Settings, UserCog } from "lucide-react";
 import { ModeToggle } from "@/components/ModeToggle";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -42,6 +42,11 @@ const routes = [
     href: "/grafiki/edycja",
     label: "Edytor Grafiku",
     icon: Settings,
+  },
+  {
+    href: "/osoby",
+    label: "Baza Osób",
+    icon: UserCog,
   },
 ];
 
