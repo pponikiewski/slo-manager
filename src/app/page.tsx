@@ -58,7 +58,7 @@ export default async function Home() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>          <AddMemberDialog /> {/* <--- Tutaj wstawiamy przycisk */}
+          </Table> 
         </CardContent>
       </Card>
     </main>

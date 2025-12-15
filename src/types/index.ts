@@ -6,3 +6,10 @@ export type Member = {
   guild: string | null;
   points: number;
 };
+
+export type AttendanceLog = {
+  member_id: string;
+  date: string;
+  slot: 'am' | 'pm';
+  type: string;
+};
