@@ -106,7 +106,7 @@ export async function assignMemberToSlot(slotId: string, memberId: string) {
   const { error } = await supabase
     .from("roster_assignments")
     .insert({
-      weekly_slot_id: slotId,
+      slot_id: slotId,
       member_id: memberId
     });
 
