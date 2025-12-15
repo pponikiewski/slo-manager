@@ -13,3 +13,12 @@ export type AttendanceLog = {
   slot: 'am' | 'pm';
   type: string;
 };
+
+export type MemberScore = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  rank: string;
+  guild: string | null;
+  total_points: number; // To jest nasze obliczone pole
+};
