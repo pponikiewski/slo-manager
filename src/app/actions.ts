@@ -24,3 +24,31 @@ export async function addMember(formData: FormData) {
   // 3. Odświeżamy stronę, żeby nowa osoba od razu się pojawiła
   revalidatePath("/");
 }
+
+export async function saveAttendance(
+  memberId: string,
+  date: string,
+  slot: 'am' | 'pm',
+  type: string | null // null oznacza usunięcie wpisu
+) {
+  if (!type) {
+    // Jeśli typ to null, usuwamy wpis (czyszczenie kratki)
+    await supabase
+      .from("attendance_logs")
+      .delete()
+      .match({ member_id: memberId, date, slot });
+  } else {
+    // W przeciwnym razie wstawiamy lub aktualizujemy (upsert)
+    const { error } = await supabase
+      .from("attendance_logs")
+      .upsert(
+        { member_id: memberId, date, slot, type },
+        { onConflict: 'member_id, date, slot' } // Klucz unikalny, który zdefiniowaliśmy w bazie
+      );
+      
+    if (error) throw new Error(error.message);
+  }
+
+  // Odświeżamy widok, żeby inni admini też widzieli zmianę
+  revalidatePath("/grafik");
+}
